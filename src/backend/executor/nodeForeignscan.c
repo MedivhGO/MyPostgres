@@ -51,7 +51,7 @@ ForeignNext(ForeignScanState *node)
 	if (plan->operation != CMD_SELECT)
 		slot = node->fdwroutine->IterateDirectModify(node);
 	else
-		slot = node->fdwroutine->IterateForeignScan(node);
+		slot = node->fdwroutine->IterateForeignScan(node); // fdw 进行数据的扫描
 	MemoryContextSwitchTo(oldcontext);
 
 	/*
@@ -233,7 +233,7 @@ ExecInitForeignScan(ForeignScan *node, EState *estate, int eflags)
 	if (node->operation != CMD_SELECT)
 		fdwroutine->BeginDirectModify(scanstate, eflags);
 	else
-		fdwroutine->BeginForeignScan(scanstate, eflags); // thie line to run udf function in fwd.c  
+		fdwroutine->BeginForeignScan(scanstate, eflags); // fdw 需要实现的接口之一
 
 	return scanstate;
 }
@@ -279,7 +279,7 @@ ExecReScanForeignScan(ForeignScanState *node)
 {
 	PlanState  *outerPlan = outerPlanState(node);
 
-	node->fdwroutine->ReScanForeignScan(node);
+	node->fdwroutine->ReScanForeignScan(node); // fdw 会调用这个函数的实现
 
 	/*
 	 * If chgParam of subnode is not null then plan will be re-scanned by

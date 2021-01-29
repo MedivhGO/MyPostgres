@@ -1417,7 +1417,7 @@ postgresGetForeignPlan(PlannerInfo *root,
  *		Initiate an executor scan of a foreign PostgreSQL table.
  */
 static void
-postgresBeginForeignScan(ForeignScanState *node, int eflags)
+postgresBeginForeignScan(ForeignScanState *node, int eflags) // 开始扫描外部数据
 {
 	ForeignScan *fsplan = (ForeignScan *) node->ss.ps.plan;
 	EState	   *estate = node->ss.ps.state;

@@ -3902,7 +3902,7 @@ create_foreignscan_plan(PlannerInfo *root, ForeignPath *best_path,
 	scan_plan = rel->fdwroutine->GetForeignPlan(root, rel, rel_oid,
 												best_path,
 												tlist, scan_clauses,
-												outer_plan);
+												outer_plan); // 使用用户自定义的fdw会调用这个函数
 
 	/* Copy cost data from Path to Plan; no need to make FDW do this */
 	copy_generic_path_info(&scan_plan->scan.plan, &best_path->path);
