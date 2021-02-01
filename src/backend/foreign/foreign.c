@@ -32,7 +32,7 @@
  * GetForeignDataWrapper -	look up the foreign-data wrapper by OID.
  */
 ForeignDataWrapper *
-GetForeignDataWrapper(Oid fdwid)
+GetForeignDataWrapper(Oid fdwid) // 通过oid找到包裹器
 {
 	return GetForeignDataWrapperExtended(fdwid, 0);
 }
@@ -44,7 +44,7 @@ GetForeignDataWrapper(Oid fdwid)
  * be found instead of raising an error.
  */
 ForeignDataWrapper *
-GetForeignDataWrapperExtended(Oid fdwid, bits16 flags)
+GetForeignDataWrapperExtended(Oid fdwid, bits16 flags) //寻找包裹器，通过flags控制没找到时是返回null还是抛出异常。
 {
 	Form_pg_foreign_data_wrapper fdwform;
 	ForeignDataWrapper *fdw;
@@ -91,7 +91,7 @@ GetForeignDataWrapperExtended(Oid fdwid, bits16 flags)
  * definition by name.
  */
 ForeignDataWrapper *
-GetForeignDataWrapperByName(const char *fdwname, bool missing_ok)
+GetForeignDataWrapperByName(const char *fdwname, bool missing_ok) // 通过包裹器的名字来寻找包裹器
 {
 	Oid			fdwId = get_foreign_data_wrapper_oid(fdwname, missing_ok);
 
@@ -106,7 +106,7 @@ GetForeignDataWrapperByName(const char *fdwname, bool missing_ok)
  * GetForeignServer - look up the foreign server definition.
  */
 ForeignServer *
-GetForeignServer(Oid serverid)
+GetForeignServer(Oid serverid) // 通过server id寻找foreignserver
 {
 	return GetForeignServerExtended(serverid, 0);
 }
@@ -118,7 +118,7 @@ GetForeignServer(Oid serverid)
  * instead of raising an error.
  */
 ForeignServer *
-GetForeignServerExtended(Oid serverid, bits16 flags)
+ GetForeignServerExtended(Oid serverid, bits16 flags) // 通过flags来判断是没找到时是抛出异常还是返回null。
 {
 	Form_pg_foreign_server serverform;
 	ForeignServer *server;
@@ -177,7 +177,7 @@ GetForeignServerExtended(Oid serverid, bits16 flags)
  * GetForeignServerByName - look up the foreign server definition by name.
  */
 ForeignServer *
-GetForeignServerByName(const char *srvname, bool missing_ok)
+GetForeignServerByName(const char *srvname, bool missing_ok) // 通过foreignserver name寻找ForeignServer
 {
 	Oid			serverid = get_foreign_server_oid(srvname, missing_ok);
 
@@ -195,7 +195,7 @@ GetForeignServerByName(const char *srvname, bool missing_ok)
  * PUBLIC mappings (userid == InvalidOid).
  */
 UserMapping *
-GetUserMapping(Oid userid, Oid serverid)
+GetUserMapping(Oid userid, Oid serverid) // 得到用户映射表，如果没找到给定userid的用户映射表，就寻找public mapping
 {
 	Datum		datum;
 	HeapTuple	tp;
@@ -245,7 +245,7 @@ GetUserMapping(Oid userid, Oid serverid)
  * GetForeignTable - look up the foreign table definition by relation oid.
  */
 ForeignTable *
-GetForeignTable(Oid relid)
+GetForeignTable(Oid relid) // 寻找外部表的定义通过relation oid
 {
 	Form_pg_foreign_table tableform;
 	ForeignTable *ft;
@@ -283,7 +283,7 @@ GetForeignTable(Oid relid)
  * as list of DefElem.
  */
 List *
-GetForeignColumnOptions(Oid relid, AttrNumber attnum)
+GetForeignColumnOptions(Oid relid, AttrNumber attnum) // 通过给定的relid和attnum得到属性列表
 {
 	List	   *options;
 	HeapTuple	tp;
@@ -316,7 +316,7 @@ GetForeignColumnOptions(Oid relid, AttrNumber attnum)
  * to get its FdwRoutine struct.
  */
 FdwRoutine *
-GetFdwRoutine(Oid fdwhandler)
+GetFdwRoutine(Oid fdwhandler) // 通过fdwhandler得到fdwRoutine的结构
 {
 	Datum		datum;
 	FdwRoutine *routine;
@@ -337,7 +337,7 @@ GetFdwRoutine(Oid fdwhandler)
  * for the given foreign table, and return its OID.
  */
 Oid
-GetForeignServerIdByRelId(Oid relid)
+GetForeignServerIdByRelId(Oid relid) // 通过给定的relid找到server id
 {
 	HeapTuple	tp;
 	Form_pg_foreign_table tableform;
@@ -359,7 +359,7 @@ GetForeignServerIdByRelId(Oid relid)
  * for the given foreign server, and retrieve its FdwRoutine struct.
  */
 FdwRoutine *
-GetFdwRoutineByServerId(Oid serverid)
+GetFdwRoutineByServerId(Oid serverid) // 返回给定serverid的fdw结构
 {
 	HeapTuple	tp;
 	Form_pg_foreign_data_wrapper fdwform;
@@ -401,7 +401,7 @@ GetFdwRoutineByServerId(Oid serverid)
  * for the given foreign table, and retrieve its FdwRoutine struct.
  */
 FdwRoutine *
-GetFdwRoutineByRelId(Oid relid)
+GetFdwRoutineByRelId(Oid relid) // 通过relid来找到对应fdw的结构
 {
 	Oid			serverid;
 
@@ -424,7 +424,7 @@ GetFdwRoutineByRelId(Oid relid)
  * which will be lost in any relcache reset --- so don't rely on it long.
  */
 FdwRoutine *
-GetFdwRoutineForRelation(Relation relation, bool makecopy)
+GetFdwRoutineForRelation(Relation relation, bool makecopy) 
 {
 	FdwRoutine *fdwroutine;
 	FdwRoutine *cfdwroutine;
@@ -465,7 +465,7 @@ GetFdwRoutineForRelation(Relation relation, bool makecopy)
  */
 bool
 IsImportableForeignTable(const char *tablename,
-						 ImportForeignSchemaStmt *stmt)
+						 ImportForeignSchemaStmt *stmt) // 判断是否导入外部表
 {
 	ListCell   *lc;
 
@@ -503,7 +503,7 @@ IsImportableForeignTable(const char *tablename,
  * tuplestore usable in SRF.
  */
 static void
-deflist_to_tuplestore(ReturnSetInfo *rsinfo, List *options)
+deflist_to_tuplestore(ReturnSetInfo *rsinfo, List *options) 
 {
 	ListCell   *cell;
 	TupleDesc	tupdesc;
