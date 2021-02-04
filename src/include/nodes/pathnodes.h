@@ -753,7 +753,12 @@ typedef struct RelOptInfo
 	Relids		all_partrels;	/* Relids set of all partition relids */
 	List	  **partexprs;		/* Non-nullable partition key expressions */
 	List	  **nullable_partexprs; /* Nullable partition key expressions */
-} RelOptInfo;
+} RelOptInfo; // RelOptInfo用于优化阶段表示一张表，所有RelOptInfo都会被组织成一个array
+// 其他地方也是通过index来索引，具体来说PlannerInfo::simple_rel_array字段存放着所有
+// relopt_baserel/relopt_other_member_rel/relopt_Deadel类型的relOptinfo结构.
+// 表示relid指定RTE对应的RelOptInfo结构就存放在simple_rel_array[relid]中
+// PlannerInfo::join_rel_list字段存放着所有relopt_joinrel类型的ReloptInfo。
+// PlannerInfo::upper_rels用来存放着所有Relopt_upper_rel类型的RelOptInfo
 
 /*
  * Is given relation partitioned?

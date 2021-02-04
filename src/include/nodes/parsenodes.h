@@ -974,7 +974,7 @@ typedef enum RTEKind
 								 * present during parsing or rewriting */
 } RTEKind;
 
-typedef struct RangeTblEntry
+typedef struct RangeTblEntry // 在语义分析querytree中，PG使用RangeTblEntry来表示表及其类似物
 {
 	NodeTag		type;
 
