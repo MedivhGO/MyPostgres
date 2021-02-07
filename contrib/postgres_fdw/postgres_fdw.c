@@ -539,8 +539,8 @@ postgres_fdw_handler(PG_FUNCTION_ARGS)
 
 	/* Functions for scanning foreign tables */
 	routine->GetForeignRelSize = postgresGetForeignRelSize;
-	routine->GetForeignPaths = postgresGetForeignPaths;
-	routine->GetForeignPlan = postgresGetForeignPlan;
+	routine->GetForeignPaths = postgresGetForeignPaths; // 会在allpaths.c中被调用
+	routine->GetForeignPlan = postgresGetForeignPlan; // 会在createplan.c中被调用
 	routine->BeginForeignScan = postgresBeginForeignScan;
 	routine->IterateForeignScan = postgresIterateForeignScan;
 	routine->ReScanForeignScan = postgresReScanForeignScan;
@@ -986,7 +986,7 @@ get_useful_pathkeys_for_relation(PlannerInfo *root, RelOptInfo *rel)
 /*
  * postgresGetForeignPaths
  *		Create possible scan paths for a scan on the foreign table
- */
+ */	
 static void
 postgresGetForeignPaths(PlannerInfo *root,
 						RelOptInfo *baserel,
@@ -1007,6 +1007,7 @@ postgresGetForeignPaths(PlannerInfo *root,
 	 * Although this path uses no join clauses, it could still have required
 	 * parameterization due to LATERAL refs in its tlist.
 	 */
+	// 该函数用于生成对目标外部表的访问路径，必须至少提供以后访问路径。
 	path = create_foreignscan_path(root, baserel,
 								   NULL,	/* default pathtarget */
 								   fpinfo->rows,
@@ -1016,7 +1017,7 @@ postgresGetForeignPaths(PlannerInfo *root,
 								   baserel->lateral_relids,
 								   NULL,	/* no extra plan */
 								   NIL);	/* no fdw_private list */
-	add_path(baserel, (Path *) path);
+	add_path(baserel, (Path *) path); // 加入到pg优化器的路径访问列表中。
 
 	/* Add paths with pathkeys */
 	add_paths_with_pathkeys_for_rel(root, baserel, NULL);
@@ -1203,7 +1204,7 @@ postgresGetForeignPlan(PlannerInfo *root,
 					   ForeignPath *best_path,
 					   List *tlist,
 					   List *scan_clauses,
-					   Plan *outer_plan)
+					   Plan *outer_plan) //此函数用于生成访问目标外部表的ForeignScan计划节点
 {
 	PgFdwRelationInfo *fpinfo = (PgFdwRelationInfo *) foreignrel->fdw_private;
 	Index		scan_relid;
@@ -1298,6 +1299,7 @@ postgresGetForeignPlan(PlannerInfo *root,
 		 * Instead we get the conditions to apply from the fdw_private
 		 * structure.
 		 */
+		// extract_actual_clauses PG提供的函数extract_actual_clauses对scan_clauses进行提取
 		remote_exprs = extract_actual_clauses(fpinfo->remote_conds, false);
 		local_exprs = extract_actual_clauses(fpinfo->local_conds, false);
 
@@ -1403,13 +1405,13 @@ postgresGetForeignPlan(PlannerInfo *root,
 	 * because then they wouldn't be subject to later planner processing.
 	 */
 	return make_foreignscan(tlist,
-							local_exprs,
-							scan_relid,
-							params_list,
-							fdw_private,
-							fdw_scan_tlist,
-							fdw_recheck_quals,
-							outer_plan);
+							local_exprs, // 查询语句
+							scan_relid, // 如果scanrelid如果是单表，即baserel->relid.如果baserel是Join relation 或者 upper relation 设置scanrelid为0
+							params_list, // 1额外的表达式，没有可以传NIL
+							fdw_private,  // fdw_private是FDW的私有信息；可提供过执行器调用的回调函数中使用
+							fdw_scan_tlist, // 2未知可传NIL
+							fdw_recheck_quals, // 3未知可传NIL
+							outer_plan); // 4未知可传NIL 其中1234主要用于Join Relatio或 upper relation
 }
 
 /*
@@ -1417,8 +1419,10 @@ postgresGetForeignPlan(PlannerInfo *root,
  *		Initiate an executor scan of a foreign PostgreSQL table.
  */
 static void
-postgresBeginForeignScan(ForeignScanState *node, int eflags) // 开始扫描外部数据
-{
+postgresBeginForeignScan(ForeignScanState *node, int eflags) // 开始扫描外部数据 
+{ // 执行ForeignScan算子所需的信息，并将他们组织并保存在ForeignScanState中，比如说
+// 外部数据库的连接，或者是打开文件的句柄等资源信息，都可以保存在ForeignScanState中，供IterateForeignScan使用
+// 不需要在IterateForeignScan里面重复申请。
 	ForeignScan *fsplan = (ForeignScan *) node->ss.ps.plan;
 	EState	   *estate = node->ss.ps.state;
 	PgFdwScanState *fsstate;
@@ -1522,9 +1526,11 @@ postgresBeginForeignScan(ForeignScanState *node, int eflags) // 开始扫描外�
  */
 static TupleTableSlot *
 postgresIterateForeignScan(ForeignScanState *node)
-{
+{ // 读取外部数据源的一行数据，并将它组织为pg中的tupletableslot。重要!
+// 因为最终SQL执行后返回的数据都是通过这个函数来组织的，因此一行数据是如何
+// 获取到的，我们可以根据自己的需求灵活控制。
 	PgFdwScanState *fsstate = (PgFdwScanState *) node->fdw_state;
-	TupleTableSlot *slot = node->ss.ss_ScanTupleSlot;
+	TupleTableSlot *slot = node->ss.ss_ScanTupleSlot; // 从node中获取元组槽
 
 	/*
 	 * If this is the first call after Begin or ReScan, we need to create the
@@ -1543,7 +1549,7 @@ postgresIterateForeignScan(ForeignScanState *node)
 			fetch_more_data(node);
 		/* If we didn't get any tuples, must be end of data. */
 		if (fsstate->next_tuple >= fsstate->num_tuples)
-			return ExecClearTuple(slot);
+			return ExecClearTuple(slot); // 执行此函数对元组槽进行一些清理工作，并标记元组槽是空的。
 	}
 
 	/*
@@ -1562,7 +1568,8 @@ postgresIterateForeignScan(ForeignScanState *node)
  */
 static void
 postgresReScanForeignScan(ForeignScanState *node)
-{
+{ // 将外部数据源的读取位置重置回最初的起始位置，比如将文件的游标重置回起始位置，或者是迭代器之类的重置回
+// 起始位置。
 	PgFdwScanState *fsstate = (PgFdwScanState *) node->fdw_state;
 	char		sql[64];
 	PGresult   *res;
@@ -1618,7 +1625,8 @@ postgresReScanForeignScan(ForeignScanState *node)
  */
 static void
 postgresEndForeignScan(ForeignScanState *node)
-{
+{ // 释放整个ForeignScan算子执行过程中所占用的尾部资源或fdw中的资源，即把在BeginForeignScan里
+// 申请的资源进行释放。
 	PgFdwScanState *fsstate = (PgFdwScanState *) node->fdw_state;
 
 	/* if fsstate is NULL, we are in EXPLAIN; nothing to do */

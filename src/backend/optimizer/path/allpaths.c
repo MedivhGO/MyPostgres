@@ -912,7 +912,7 @@ set_foreign_size(PlannerInfo *root, RelOptInfo *rel, RangeTblEntry *rte)
 	set_foreign_size_estimates(root, rel);
 
 	/* Let FDW adjust the size estimates, if it can */
-	rel->fdwroutine->GetForeignRelSize(root, rel, rte->relid); // fdw需要实现的接口之一
+	rel->fdwroutine->GetForeignRelSize(root, rel, rte->relid); // fdw需要实现的接口之一用来设置外部表的
 
 	/* ... but do not let it set the rows estimate to zero */
 	rel->rows = clamp_row_est(rel->rows);
