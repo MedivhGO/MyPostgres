@@ -598,7 +598,7 @@ postgresGetForeignRelSize(PlannerInfo *root,
 						  RelOptInfo *baserel,
 						  Oid foreigntableid)
 {
-	PgFdwRelationInfo *fpinfo; // 将用来存储fdw 所用到的planner信息
+	PgFdwRelationInfo *fpinfo; // 将用来存储fdw 所用到的planner信息 foreign planner
 	ListCell   *lc;
 	RangeTblEntry *rte = planner_rt_fetch(baserel->relid, root);
 

@@ -18,8 +18,8 @@ exit_nicely(PGconn *conn)
 }
 
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) // libpq是postgreSQL的C应用程序接口，libpq允许客户程序向postgresql服务器进程发送
+{							//查询并且获得查询返回的库函数
 	const char *conninfo;
 	PGconn	   *conn;
 	PGresult   *res;
