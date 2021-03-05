@@ -1420,7 +1420,8 @@ postgresGetForeignPlan(PlannerInfo *root,
  */
 static void
 postgresBeginForeignScan(ForeignScanState *node, int eflags) // 开始扫描外部数据 
-{ // 执行ForeignScan算子所需的信息，并将他们组织并保存在ForeignScanState中，比如说
+{ 
+// 执行ForeignScan算子所需的信息，并将他们组织并保存在ForeignScanState中，比如说
 // 外部数据库的连接，或者是打开文件的句柄等资源信息，都可以保存在ForeignScanState中，供IterateForeignScan使用
 // 不需要在IterateForeignScan里面重复申请。
 	ForeignScan *fsplan = (ForeignScan *) node->ss.ps.plan;
@@ -1526,9 +1527,12 @@ postgresBeginForeignScan(ForeignScanState *node, int eflags) // 开始扫描外�
  */
 static TupleTableSlot *
 postgresIterateForeignScan(ForeignScanState *node)
-{ // 读取外部数据源的一行数据，并将它组织为pg中的tupletableslot。重要!
-// 因为最终SQL执行后返回的数据都是通过这个函数来组织的，因此一行数据是如何
-// 获取到的，我们可以根据自己的需求灵活控制。
+{
+
+// 读取外部数据源的一行数据，并将它组织为pg中的tupletableslot。重要!
+// 因为最终SQL执行后返回的数据都是通过这个函数来组织的，因此一行数据是如何。
+// 获取到的,我们可以根据自己的需求灵活控制。
+
 	PgFdwScanState *fsstate = (PgFdwScanState *) node->fdw_state;
 	TupleTableSlot *slot = node->ss.ss_ScanTupleSlot; // 从node中获取元组槽
 
@@ -1549,7 +1553,7 @@ postgresIterateForeignScan(ForeignScanState *node)
 			fetch_more_data(node);
 		/* If we didn't get any tuples, must be end of data. */
 		if (fsstate->next_tuple >= fsstate->num_tuples)
-			return ExecClearTuple(slot); // 执行此函数对元组槽进行一些清理工作，并标记元组槽是空的。
+			return ExecClearTuple(slot); // 执行此函数对元组槽进行一些清理工作,并标记元组槽是空的。
 	}
 
 	/*
@@ -1568,8 +1572,11 @@ postgresIterateForeignScan(ForeignScanState *node)
  */
 static void
 postgresReScanForeignScan(ForeignScanState *node)
-{ // 将外部数据源的读取位置重置回最初的起始位置，比如将文件的游标重置回起始位置，或者是迭代器之类的重置回
-// 起始位置。
+{ 
+
+// 将外部数据源的读取位置重置回最初的起始位置，比如将文件的游标重置回起始位置
+// 或者是迭代器之类的重置回起始位置。
+
 	PgFdwScanState *fsstate = (PgFdwScanState *) node->fdw_state;
 	char		sql[64];
 	PGresult   *res;
@@ -1625,8 +1632,10 @@ postgresReScanForeignScan(ForeignScanState *node)
  */
 static void
 postgresEndForeignScan(ForeignScanState *node)
-{ // 释放整个ForeignScan算子执行过程中所占用的尾部资源或fdw中的资源，即把在BeginForeignScan里
+{
+// 释放整个ForeignScan算子执行过程中所占用的尾部资源或fdw中的资源，即把在BeginForeignScan里
 // 申请的资源进行释放。
+
 	PgFdwScanState *fsstate = (PgFdwScanState *) node->fdw_state;
 
 	/* if fsstate is NULL, we are in EXPLAIN; nothing to do */
