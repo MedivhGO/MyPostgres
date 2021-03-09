@@ -492,7 +492,7 @@ set_rel_pathlist(PlannerInfo *root, RelOptInfo *rel,
 				if (rte->relkind == RELKIND_FOREIGN_TABLE)
 				{
 					/* Foreign table */
-					set_foreign_pathlist(root, rel, rte);
+					set_foreign_pathlist(root, rel, rte); //  this line has been ran
 				}
 				else if (rte->tablesample != NULL)
 				{

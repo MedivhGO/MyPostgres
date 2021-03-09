@@ -1,3 +1,64 @@
+Ubuntu14.04  Denpendcy
+=====================================
+
+```
+sudo apt-get install build-essential libreadline-dev zlib1g-dev flex bison libxml2-dev libxslt-dev libssl-dev
+```
+
+Compile PostgreSQL Short Version 
+=====================================
+
+```
+./configure
+make
+su
+make install
+adduser postgres
+mkdir /usr/local/pgsql/data
+chown postgres /usr/local/pgsql/data
+su - postgres
+/usr/local/pgsql/bin/initdb -D /usr/local/pgsql/data
+/usr/local/pgsql/bin/pg_ctl -D /usr/local/pgsql/data -l logfile start
+/usr/local/pgsql/bin/createdb test
+/usr/local/pgsql/bin/psql test
+```
+
+```
+./configure  --enable-debug CFLAGS="-O0 -g" # 添加调试信息
+make -sj # 并发编译
+make install -sj # 并发安装
+```
+
+Debug Workflow
+=====================================
+
+```
+su postgres
+
+/usr/local/pgsql/bin/psql -p 2345 # 修改过端口号,如果没修改过,可不写
+
+select pg_backend_pid(); # 得到当前客户端postgres分配的进程号
+
+sudo gdb -p portnumber
+
+```
+
+Change Port 
+=====================================
+
+```
+vim /usr/local/pgsql/data/postgresql.conf 
+```
+
+Remove PostgreSQL
+=====================================
+
+```
+make uninstall # 卸载postgres
+make clean # 清理安装文件
+```
+
+
 PostgreSQL Database Management System
 =====================================
 
