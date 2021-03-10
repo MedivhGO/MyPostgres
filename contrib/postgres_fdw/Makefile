@@ -10,7 +10,7 @@ OBJS = \
 	shippable.o
 PGFILEDESC = "postgres_fdw - foreign data wrapper for PostgreSQL"
 
-PG_CPPFLAGS = -I$(libpq_srcdir)
+PG_CPPFLAGS = -I$(libpq_srcdir) -ggdb3
 SHLIB_LINK_INTERNAL = $(libpq)
 
 EXTENSION = postgres_fdw
