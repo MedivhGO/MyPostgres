@@ -4388,7 +4388,7 @@ PostgresMain(int argc, char *argv[],
 					if (am_walsender)
 					{
 						if (!exec_replication_command(query_string))
-							exec_simple_query(query_string);
+							exec_simple_query(query_string); // ljq 此处开始执行一条sql
 					}
 					else
 						exec_simple_query(query_string);

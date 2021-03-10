@@ -80,7 +80,7 @@ typedef struct PgFdwRelationInfo // 自定义的pgfwd relationinfo 用来存储p
 	List	   *shippable_extensions;	/* OIDs of shippable extensions */
 
 	/* Cached catalog information. */
-	ForeignTable *table;
+	ForeignTable *table;  // 里面放了table oid和server的 oid
 	ForeignServer *server;
 	UserMapping *user;			/* only set in use_remote_estimate mode */
 

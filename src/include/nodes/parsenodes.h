@@ -103,10 +103,10 @@ typedef uint32 AclMode;			/* a bitmask of privilege bits */
  *	  utilityStmt field set, and the rest of the Query is mostly dummy.
  *
  *	  Planning converts a Query tree into a Plan tree headed by a PlannedStmt
- *	  node --- the Query structure is not used by the executor.
+ *	  node --- the EQuery structure is not used by the executor.
  */
-typedef struct Query
-{
+typedef struct Query // SQL语义分析之后的结果
+{//SELECT $targets FROM $tables_or_sub_queries WHERE $quals GROUP BY $columns ORDER BY $columns LIMIT $num OFFSET $columns;
 	NodeTag		type;
 
 	CmdType		commandType;	/* select|insert|update|delete|utility */
@@ -134,8 +134,8 @@ typedef struct Query
 
 	List	   *cteList;		/* WITH list (of CommonTableExpr's) */
 
-	List	   *rtable;			/* list of range table entries */
-	FromExpr   *jointree;		/* table join tree (FROM and WHERE clauses) */
+	List	   *rtable;			/* list of range table entries */ // 用于存放子查询 $tables_or_sub_queries的内容,RangeTblEntry的列表
+	FromExpr   *jointree;		/* table join tree (FROM and WHERE clauses) */ //与rtable一起用于处理pathkey相关的信息.
 
 	List	   *targetList;		/* target list (of TargetEntry) */
 

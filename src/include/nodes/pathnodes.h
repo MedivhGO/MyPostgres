@@ -677,7 +677,7 @@ typedef struct RelOptInfo
 	struct PathTarget *reltarget;	/* list of Vars/Exprs, cost, width */
 
 	/* materialization information */
-	List	   *pathlist;		/* Path structures */
+	List	   *pathlist;		/* Path structures *///生成执行计划就是从下往上处理这个属性的过程,选择有成本较优的节点,删除无用的节点最后得到执行计划
 	List	   *ppilist;		/* ParamPathInfos used in pathlist */
 	List	   *partial_pathlist;	/* partial Paths */
 	struct Path *cheapest_startup_path;
@@ -700,7 +700,7 @@ typedef struct RelOptInfo
 	int32	   *attr_widths;	/* array indexed [min_attr .. max_attr] */
 	List	   *lateral_vars;	/* LATERAL Vars and PHVs referenced by rel */
 	Relids		lateral_referencers;	/* rels that reference me laterally */
-	List	   *indexlist;		/* list of IndexOptInfo */
+	List	   *indexlist;		/* list of IndexOptInfo *///如RelOptInfo中的indexlist用于表示这张表的索引信息，用于判断是否可以用上索引。
 	List	   *statlist;		/* list of StatisticExtInfo */
 	BlockNumber pages;			/* size estimates derived from pg_class */
 	double		tuples;
@@ -1163,8 +1163,8 @@ typedef struct Path
 	double		rows;			/* estimated number of result tuples */
 	Cost		startup_cost;	/* cost expended before fetching any tuples */
 	Cost		total_cost;		/* total cost (assuming all tuples fetched) */
-
-	List	   *pathkeys;		/* sort ordering of path's output */
+// pathkeys可以用于所有已经排过序的RelOptInfo中,用于表示这个表,函数,子查询,join等是有序的,作为上层判断选择path的依据之一.
+	List	   *pathkeys;		/* sort ordering of path's output *///根据索引情况建立的PathKey列表
 	/* pathkeys is a List of PathKey nodes; see above */
 } Path;
 
