@@ -76,9 +76,9 @@ typedef struct TupleConstr
  * field of such a descriptor to -1, while reference-counted descriptors
  * always have tdrefcount >= 0.
  */
-typedef struct TupleDescData
+typedef struct TupleDescData //用于描述这个tuple的属性
 {
-	int			natts;			/* number of attributes in the tuple */
+	int			natts;			/* number of attributes in the tuple */ //属性个数
 	Oid			tdtypeid;		/* composite type ID for tuple type */
 	int32		tdtypmod;		/* typmod for tuple type */
 	int			tdrefcount;		/* reference count, or -1 if not counting */

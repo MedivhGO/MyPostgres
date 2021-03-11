@@ -18,7 +18,7 @@
 #include "storage/block.h"
 #include "storage/item.h"
 #include "storage/off.h"
-
+// ljq postgres headfile format default 8KB
 /*
  * A postgres disk page is an abstraction layered on top of a postgres
  * disk block (which is simply a unit of i/o, see block.h).

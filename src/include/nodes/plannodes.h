@@ -331,7 +331,7 @@ typedef struct BitmapOr
  * Scan nodes
  * ==========
  */
-typedef struct Scan
+typedef struct Scan // 所有扫描节点都使用Scan作为公共父类，Scan不仅继承了Plan的所有属性，还扩展定义了scanrelid用于记录被扫描的表在范围表中的序号。
 {
 	Plan		plan;
 	Index		scanrelid;		/* relid is index into the range table */

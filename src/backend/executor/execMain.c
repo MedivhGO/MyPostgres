@@ -1539,13 +1539,13 @@ ExecutePlan(EState *estate,
 		/*
 		 * Execute the plan and obtain a tuple
 		 */
-		slot = ExecProcNode(planstate);
+		slot = ExecProcNode(planstate); // 执行计划上的节点,获得tuple
 
 		/*
 		 * if the tuple is null, then we assume there is nothing more to
 		 * process so we just end the loop...
 		 */
-		if (TupIsNull(slot))
+		if (TupIsNull(slot)) // 没有更多的tuple可以获取
 			break;
 
 		/*

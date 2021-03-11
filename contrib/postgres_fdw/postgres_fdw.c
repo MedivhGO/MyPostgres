@@ -1221,7 +1221,7 @@ postgresGetForeignPlan(PlannerInfo *root,
 	ListCell   *lc;
 
 	/*
-	 * Get FDW private data created by postgresGetForeignUpperPaths(), if any.
+	 * Get FDW private data created by postgresGetForeignUpperPaths(), if any. 如果有的话
 	 */
 	if (best_path->fdw_private)
 	{
@@ -1411,7 +1411,7 @@ postgresGetForeignPlan(PlannerInfo *root,
 							fdw_private,  // fdw_private是FDW的私有信息；可提供过执行器调用的回调函数中使用
 							fdw_scan_tlist, // 2未知可传NIL
 							fdw_recheck_quals, // 3未知可传NIL
-							outer_plan); // 4未知可传NIL 其中1234主要用于Join Relatio或 upper relation
+							outer_plan); // 4未知可传NIL 其中1234主要用于Join Relatio或 Upper relation
 }
 
 /*
@@ -1475,7 +1475,7 @@ postgresBeginForeignScan(ForeignScanState *node, int eflags) // 开始扫描外�
 
 	/* Get private info created by planner functions. */
 	fsstate->query = strVal(list_nth(fsplan->fdw_private,
-									 FdwScanPrivateSelectSql));
+									 FdwScanPrivateSelectSql));//要给外部执行的sql
 	fsstate->retrieved_attrs = (List *) list_nth(fsplan->fdw_private,
 												 FdwScanPrivateRetrievedAttrs);
 	fsstate->fetch_size = intVal(list_nth(fsplan->fdw_private,
@@ -1541,7 +1541,7 @@ postgresIterateForeignScan(ForeignScanState *node)
 	 * cursor on the remote side.
 	 */
 	if (!fsstate->cursor_exists)
-		create_cursor(node);
+		create_cursor(node); // 在原有的sql语句基础上,添加声明游标的语句
 
 	/*
 	 * Get some more tuples, if we've run out.
@@ -1561,7 +1561,7 @@ postgresIterateForeignScan(ForeignScanState *node)
 	 */
 	ExecStoreHeapTuple(fsstate->tuples[fsstate->next_tuple++],
 					   slot,
-					   false);
+					   false); // 调用存储相关的接口,把数据按照新的tuple方式进行组织并存储.
 
 	return slot;
 }
@@ -1644,10 +1644,10 @@ postgresEndForeignScan(ForeignScanState *node)
 
 	/* Close the cursor if open, to prevent accumulation of cursors */
 	if (fsstate->cursor_exists)
-		close_cursor(fsstate->conn, fsstate->cursor_number);
+		close_cursor(fsstate->conn, fsstate->cursor_number); // 关闭游标
 
 	/* Release remote connection */
-	ReleaseConnection(fsstate->conn);
+	ReleaseConnection(fsstate->conn); // 释放链接,这个函数是空的,因为会由事务管理模块负责清理工作
 	fsstate->conn = NULL;
 
 	/* MemoryContexts will be deleted automatically. */
@@ -3541,14 +3541,14 @@ fetch_more_data(ForeignScanState *node)
 		snprintf(sql, sizeof(sql), "FETCH %d FROM c%u",
 				 fsstate->fetch_size, fsstate->cursor_number);
 
-		res = pgfdw_exec_query(conn, sql);
+		res = pgfdw_exec_query(conn, sql); // 这一句就已经通过执行发送sql命令,得到了结果
 		/* On error, report the original query, not the FETCH. */
 		if (PQresultStatus(res) != PGRES_TUPLES_OK)
 			pgfdw_report_error(ERROR, res, conn, false, fsstate->query);
 
 		/* Convert the data into HeapTuples */
-		numrows = PQntuples(res);
-		fsstate->tuples = (HeapTuple *) palloc0(numrows * sizeof(HeapTuple));
+		numrows = PQntuples(res); /// 从结果中得到结果的行数
+		fsstate->tuples = (HeapTuple *) palloc0(numrows * sizeof(HeapTuple));// 内存里找个地方放这些结果
 		fsstate->num_tuples = numrows;
 		fsstate->next_tuple = 0;
 
@@ -3556,7 +3556,7 @@ fetch_more_data(ForeignScanState *node)
 		{
 			Assert(IsA(node->ss.ps.plan, ForeignScan));
 
-			fsstate->tuples[i] =
+			fsstate->tuples[i] = // 这个是做数据转换的重点
 				make_tuple_from_result_row(res, i,
 										   fsstate->rel,
 										   fsstate->attinmeta,
@@ -6498,7 +6498,7 @@ add_foreign_final_paths(PlannerInfo *root, RelOptInfo *input_rel,
  * integer list of the table column numbers present in the PGresult.
  * temp_context is a working context that can be reset after each tuple.
  */
-static HeapTuple
+static HeapTuple // 把fetch的结果res转变为postgres内部的存储格式
 make_tuple_from_result_row(PGresult *res,
 						   int row,
 						   Relation rel,
@@ -6528,15 +6528,15 @@ make_tuple_from_result_row(PGresult *res,
 	oldcontext = MemoryContextSwitchTo(temp_context);
 
 	if (rel)
-		tupdesc = RelationGetDescr(rel);
+		tupdesc = RelationGetDescr(rel); // 得到原表的元数据
 	else
 	{
 		Assert(fsstate);
 		tupdesc = fsstate->ss.ss_ScanTupleSlot->tts_tupleDescriptor;
 	}
 
-	values = (Datum *) palloc0(tupdesc->natts * sizeof(Datum));
-	nulls = (bool *) palloc(tupdesc->natts * sizeof(bool));
+	values = (Datum *) palloc0(tupdesc->natts * sizeof(Datum)); // ljq这是干啥的
+	nulls = (bool *) palloc(tupdesc->natts * sizeof(bool)); // ljq不懂这行是干啥的
 	/* Initialize to nulls for any columns not present in result */
 	memset(nulls, true, tupdesc->natts * sizeof(bool));
 
@@ -6554,8 +6554,8 @@ make_tuple_from_result_row(PGresult *res,
 	/*
 	 * i indexes columns in the relation, j indexes columns in the PGresult.
 	 */
-	j = 0;
-	foreach(lc, retrieved_attrs)
+	j = 0; // j是从外部表拿到的数据的下标
+	foreach(lc, retrieved_attrs) // 为retrieved_attrs进行赋值
 	{
 		int			i = lfirst_int(lc);
 		char	   *valstr;

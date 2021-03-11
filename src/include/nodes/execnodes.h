@@ -1318,12 +1318,12 @@ typedef struct BitmapOrState
  *		ScanTupleSlot	   pointer to slot in tuple table holding scan tuple
  * ----------------
  */
-typedef struct ScanState
+typedef struct ScanState // 
 {
 	PlanState	ps;				/* its first field is NodeTag */
 	Relation	ss_currentRelation;
 	struct TableScanDescData *ss_currentScanDesc;
-	TupleTableSlot *ss_ScanTupleSlot;
+	TupleTableSlot *ss_ScanTupleSlot; // 记录扫描到的结果
 } ScanState;
 
 /* ----------------
