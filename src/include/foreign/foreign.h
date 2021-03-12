@@ -29,7 +29,7 @@ typedef struct ForeignDataWrapper
 	Oid			fdwhandler;		/* Oid of handler function, or 0 */
 	Oid			fdwvalidator;	/* Oid of validator function, or 0 */
 	List	   *options;		/* fdwoptions as DefElem list */
-} ForeignDataWrapper; // 比标准少了一个库名
+} ForeignDataWrapper;
 
 typedef struct ForeignServer
 {
