@@ -110,7 +110,7 @@ static Node *transformFrameOffset(ParseState *pstate, int frameOptions,
  * We will add onto any entries already present --- this is needed for rule
  * processing, as well as for UPDATE and DELETE.
  */
-void
+void // 负责from子句的语法分析,并生成范围表,Query的rtable字段
 transformFromClause(ParseState *pstate, List *frmList)
 {
 	ListCell   *fl;
@@ -132,7 +132,7 @@ transformFromClause(ParseState *pstate, List *frmList)
 
 		n = transformFromClauseItem(pstate, n,
 									&nsitem,
-									&namespace);
+									&namespace); // 对fromlist里的每个node进行处理
 
 		checkNameSpaceConflicts(pstate, pstate->p_namespace, namespace);
 
@@ -1052,18 +1052,18 @@ getNSItemForSpecialRelationTypes(ParseState *pstate, RangeVar *rv)
  * as table/column names by this item.  (The lateral_only flags in these items
  * are indeterminate and should be explicitly set by the caller before use.)
  */
-static Node *
+static Node * //这个函数实际上完成了pstate中p_rtable所指向链表的构建
 transformFromClauseItem(ParseState *pstate, Node *n,
 						ParseNamespaceItem **top_nsitem,
 						List **namespace)
-{
-	if (IsA(n, RangeVar))
+{ // 根据node来产生一个或者多个RangeTableEntry结构,加入到ParseState的p_rtable字段指向的链表中.
+	if (IsA(n, RangeVar)) // 表示一个普通表
 	{
 		/* Plain relation reference, or perhaps a CTE reference */
 		RangeVar   *rv = (RangeVar *) n;
 		RangeTblRef *rtr;
 		ParseNamespaceItem *nsitem;
-
+//判断是不是CTE表,如果是就把rte的类型设置为rte_cte,否则就将rte的类型设置为rte_releation
 		/* Check if it's a CTE or tuplestore reference */
 		nsitem = getNSItemForSpecialRelationTypes(pstate, rv);
 
@@ -1075,9 +1075,9 @@ transformFromClauseItem(ParseState *pstate, Node *n,
 		*namespace = list_make1(nsitem);
 		rtr = makeNode(RangeTblRef);
 		rtr->rtindex = nsitem->p_rtindex;
-		return (Node *) rtr;
+		return (Node *) rtr; // 生成的表被传出.
 	}
-	else if (IsA(n, RangeSubselect))
+	else if (IsA(n, RangeSubselect)) // 处理的是一个子查询
 	{
 		/* sub-SELECT is like a plain relation */
 		RangeTblRef *rtr;
@@ -1088,9 +1088,9 @@ transformFromClauseItem(ParseState *pstate, Node *n,
 		*namespace = list_make1(nsitem);
 		rtr = makeNode(RangeTblRef);
 		rtr->rtindex = nsitem->p_rtindex;
-		return (Node *) rtr;
+		return (Node *) rtr; //将这个子查询生成的RangeTblRef添加到p_rtable中
 	}
-	else if (IsA(n, RangeFunction))
+	else if (IsA(n, RangeFunction)) // 对函数的处理
 	{
 		/* function is like a plain relation */
 		RangeTblRef *rtr;
@@ -1103,7 +1103,7 @@ transformFromClauseItem(ParseState *pstate, Node *n,
 		rtr->rtindex = nsitem->p_rtindex;
 		return (Node *) rtr;
 	}
-	else if (IsA(n, RangeTableFunc))
+	else if (IsA(n, RangeTableFunc))  // table function?
 	{
 		/* table function is like a plain relation */
 		RangeTblRef *rtr;
@@ -1141,10 +1141,10 @@ transformFromClauseItem(ParseState *pstate, Node *n,
 		rte->tablesample = transformRangeTableSample(pstate, rts);
 		return rel;
 	}
-	else if (IsA(n, JoinExpr))
+	else if (IsA(n, JoinExpr)) // 处理join table情况比较复杂了.
 	{
 		/* A newfangled join expression */
-		JoinExpr   *j = (JoinExpr *) n;
+		JoinExpr   *j = (JoinExpr *) n; // 将n转换成JoinExpr表达式
 		ParseNamespaceItem *nsitem;
 		ParseNamespaceItem *l_nsitem;
 		ParseNamespaceItem *r_nsitem;
@@ -1171,7 +1171,7 @@ transformFromClauseItem(ParseState *pstate, Node *n,
 		 */
 		j->larg = transformFromClauseItem(pstate, j->larg,
 										  &l_nsitem,
-										  &l_namespace);
+										  &l_namespace); //对左子树调用
 
 		/*
 		 * Make the left-side RTEs available for LATERAL access within the
@@ -1194,7 +1194,7 @@ transformFromClauseItem(ParseState *pstate, Node *n,
 		/* And now we can process the RHS */
 		j->rarg = transformFromClauseItem(pstate, j->rarg,
 										  &r_nsitem,
-										  &r_namespace);
+										  &r_namespace); // 对右子树调用
 
 		/* Remove the left-side RTEs from the namespace list again */
 		pstate->p_namespace = list_truncate(pstate->p_namespace,
@@ -1205,12 +1205,12 @@ transformFromClauseItem(ParseState *pstate, Node *n,
 		 * this because higher levels will assume I hand back a self-
 		 * consistent namespace list.
 		 */
-		checkNameSpaceConflicts(pstate, l_namespace, r_namespace);
+		checkNameSpaceConflicts(pstate, l_namespace, r_namespace); // 对左右子树进行重名检查
 
 		/*
 		 * Generate combined namespace info for possible use below.
 		 */
-		my_namespace = list_concat(l_namespace, r_namespace);
+		my_namespace = list_concat(l_namespace, r_namespace); //这个名字会在后面进行重名检测.
 
 		/*
 		 * We'll work from the nscolumns data and eref alias column names for
@@ -1232,7 +1232,7 @@ transformFromClauseItem(ParseState *pstate, Node *n,
 		 * this step is a list of column names just like an explicitly-written
 		 * USING list.
 		 */
-		if (j->isNatural)
+		if (j->isNatural) // 为真时是自然连接,不需要using来指定字段,using此时为空
 		{
 			List	   *rlist = NIL;
 			ListCell   *lx,
@@ -1281,7 +1281,7 @@ transformFromClauseItem(ParseState *pstate, Node *n,
 					sizeof(ParseNamespaceColumn));
 		res_colindex = 0;
 
-		if (j->usingClause)
+		if (j->usingClause) // using不为空,则on一定为空.
 		{
 			/*
 			 * JOIN/USING (or NATURAL JOIN, as transformed above). Transform

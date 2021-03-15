@@ -109,7 +109,7 @@ typedef struct Query // SQL语义分析之后的结果
 {//SELECT $targets FROM $tables_or_sub_queries WHERE $quals GROUP BY $columns ORDER BY $columns LIMIT $num OFFSET $columns;
 	NodeTag		type;
 
-	CmdType		commandType;	/* select|insert|update|delete|utility */
+	CmdType		commandType;	/* select|insert|update|delete|utility */ //utility类型,优化器不会对其进行优化
 
 	QuerySource querySource;	/* where did I come from? */
 
@@ -119,7 +119,7 @@ typedef struct Query // SQL语义分析之后的结果
 
 	Node	   *utilityStmt;	/* non-null if commandType == CMD_UTILITY */
 
-	int			resultRelation; /* rtable index of target relation for
+	int			resultRelation; /* rtable index of target relation for 涉及数据修改的范围表
 								 * INSERT/UPDATE/DELETE; 0 for SELECT */
 
 	bool		hasAggs;		/* has aggregates in tlist or havingQual */
@@ -134,10 +134,10 @@ typedef struct Query // SQL语义分析之后的结果
 
 	List	   *cteList;		/* WITH list (of CommonTableExpr's) */
 
-	List	   *rtable;			/* list of range table entries */ // 用于存放子查询 $tables_or_sub_queries的内容,RangeTblEntry的列表
+	List	   *rtable;			/* list of range table entries */ // 用于存放子查询 $tables_or_sub_queries的内容,RangeTblEntry的列表也就是说是 from 后面的表或视图,使用编号而不是别名记录
 	FromExpr   *jointree;		/* table join tree (FROM and WHERE clauses) */ //与rtable一起用于处理pathkey相关的信息.
-
-	List	   *targetList;		/* target list (of TargetEntry) */
+// from子句中表的连接情况,对于没有join的,就仅仅是from后表的简单罗列,有join,就是一个join的表达式结构,所以连接树实际上表示了select语句中的from和where子句.
+	List	   *targetList;		/* target list (of TargetEntry) */ // 目标属性,用于存放查询结果属性的表达式.
 
 	OverridingKind override;	/* OVERRIDING clause */
 

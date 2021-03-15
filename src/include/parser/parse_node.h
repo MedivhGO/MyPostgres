@@ -173,24 +173,24 @@ typedef Node *(*CoerceParamHook) (ParseState *pstate, Param *param,
  *
  * p_ref_hook_state: passthrough state for the parser hook functions.
  */
-struct ParseState
+struct ParseState // 记录语义分析的中间信息
 {
-	ParseState *parentParseState;	/* stack link */
-	const char *p_sourcetext;	/* source text, or NULL if not available */
-	List	   *p_rtable;		/* range table so far */
-	List	   *p_joinexprs;	/* JoinExprs for RTE_JOIN p_rtable entries */
+	ParseState *parentParseState;	/* stack link */ 
+	const char *p_sourcetext;	/* source text, or NULL if not available */ // 原始SQL命令,只用于报告语法分析出错的位置
+	List	   *p_rtable;		/* range table so far */ // 范围表
+	List	   *p_joinexprs;	/* JoinExprs for RTE_JOIN p_rtable entries */ // 连接表达式
 	List	   *p_joinlist;		/* join items so far (will become FromExpr
-								 * node's fromlist) */
-	List	   *p_namespace;	/* currently-referenceable RTEs (List of
-								 * ParseNamespaceItem) */
+								 * node's fromlist) */ // 连接项
+	List	   *p_namespace;	/* currently-referenceable RTEs (List of 
+								 * ParseNamespaceItem) */ // 名字集合
 	bool		p_lateral_active;	/* p_lateral_only items visible? */
-	List	   *p_ctenamespace; /* current namespace for common table exprs */
+	List	   *p_ctenamespace; /* current namespace for common table exprs */ //cte名字列表
 	List	   *p_future_ctes;	/* common table exprs not yet in namespace */
 	CommonTableExpr *p_parent_cte;	/* this query's containing CTE */
 	Relation	p_target_relation;	/* INSERT/UPDATE/DELETE target rel */
 	ParseNamespaceItem *p_target_nsitem;	/* target rel's NSItem, or NULL */
-	bool		p_is_insert;	/* process assignment like INSERT not UPDATE */
-	List	   *p_windowdefs;	/* raw representations of window clauses */
+	bool		p_is_insert;	/* process assignment like INSERT not UPDATE */ //是否是insert语句
+	List	   *p_windowdefs;	/* raw representations of window clauses */// 窗口函数的原始形式
 	ParseExprKind p_expr_kind;	/* what kind of expression we're parsing */
 	int			p_next_resno;	/* next targetlist resno to assign */
 	List	   *p_multiassign_exprs;	/* junk tlist entries for multiassign */

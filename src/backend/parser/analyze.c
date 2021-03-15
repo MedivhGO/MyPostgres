@@ -254,7 +254,7 @@ transformOptionalSelectInto(ParseState *pstate, Node *parseTree)
  * transformStmt -
  *	  recursively transform a Parse tree into a Query tree.
  */
-Query *
+Query * // 根据不同的查询类型,调用相应的函数进行处理进行处理. ljq 这个是完成语义分析的重要部分.
 transformStmt(ParseState *pstate, Node *parseTree)
 {
 	Query	   *result;
@@ -297,12 +297,12 @@ transformStmt(ParseState *pstate, Node *parseTree)
 
 		case T_SelectStmt:
 			{
-				SelectStmt *n = (SelectStmt *) parseTree;
+				SelectStmt *n = (SelectStmt *) parseTree; // 词法分析后的tree
 
 				if (n->valuesLists)
 					result = transformValuesClause(pstate, n);
 				else if (n->op == SETOP_NONE)
-					result = transformSelectStmt(pstate, n);
+					result = transformSelectStmt(pstate, n); // 这个函数是最复杂的
 				else
 					result = transformSetOperationStmt(pstate, n);
 			}
@@ -1228,7 +1228,7 @@ transformSelectStmt(ParseState *pstate, SelectStmt *stmt)
 	pstate->p_windowdefs = stmt->windowClause;
 
 	/* process the FROM clause */
-	transformFromClause(pstate, stmt->fromClause);
+	transformFromClause(pstate, stmt->fromClause); // 如何处理from语句
 
 	/* transform targetlist */
 	qry->targetList = transformTargetList(pstate, stmt->targetList,

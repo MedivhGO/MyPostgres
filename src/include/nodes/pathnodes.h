@@ -1115,7 +1115,7 @@ typedef struct ParamPathInfo
 } ParamPathInfo;
 
 
-/*
+/*                     按照现状,原样.（照）当前状况.
  * Type "Path" is used as-is for sequential-scan paths, as well as some other
  * simple plan types that we don't need any extra information in the path for.
  * For other path types it is the first component of a larger struct.
