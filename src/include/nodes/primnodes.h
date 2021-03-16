@@ -1428,14 +1428,14 @@ typedef struct InferenceElem
 typedef struct TargetEntry
 {
 	Expr		xpr;
-	Expr	   *expr;			/* expression to evaluate */
-	AttrNumber	resno;			/* attribute number (see notes above) */
-	char	   *resname;		/* name of the column (could be NULL) */
-	Index		ressortgroupref;	/* nonzero if referenced by a sort/group
-									 * clause */
-	Oid			resorigtbl;		/* OID of column's source table */
-	AttrNumber	resorigcol;		/* column's number in source table */
-	bool		resjunk;		/* set to true to eliminate the attribute from
+	Expr	   *expr;			/* expression to evaluate */ // 目标属性中需要计算的表达式
+	AttrNumber	resno;			/* attribute number (see notes above) */ // 属性编号
+	char	   *resname;		/* name of the column (could be NULL) */ // 属性名
+	Index		ressortgroupref;	/* nonzero if referenced by a sort/group // 0表示未被order by和group by子句引用
+									 * clause */ // 正值表示被引用
+	Oid			resorigtbl;		/* OID of column's source table */ // 属性所属的表(源表)的oid
+	AttrNumber	resorigcol;		/* column's number in source table */ // 属性在源表中的属性号
+	bool		resjunk;		/* set to true to eliminate the attribute from // junk属性,工作属性,但在结果中会被去除.
 								 * final target list */
 } TargetEntry;
 

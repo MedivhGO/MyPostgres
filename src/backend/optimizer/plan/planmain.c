@@ -51,7 +51,7 @@
  * qp_callback once we have completed merging the query's equivalence classes.
  * (We cannot construct canonical pathkeys until that's done.)
  */
-RelOptInfo *
+RelOptInfo * // 生成路径的工作由这个完成的
 query_planner(PlannerInfo *root,
 			  query_pathkeys_callback qp_callback, void *qp_extra)
 {

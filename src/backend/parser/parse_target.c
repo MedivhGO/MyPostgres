@@ -74,7 +74,7 @@ static int	FigureColnameInternal(Node *node, char **name);
  *			wanted in the final projected tuple.
  */
 TargetEntry *
-transformTargetEntry(ParseState *pstate,
+    transformTargetEntry(ParseState *pstate,
 					 Node *node,
 					 Node *expr,
 					 ParseExprKind exprKind,
@@ -103,7 +103,7 @@ transformTargetEntry(ParseState *pstate,
 		 */
 		colname = FigureColname(node);
 	}
-
+       //创建结构体TargetEntry来存储和组织数据
 	return makeTargetEntry((Expr *) expr,
 						   (AttrNumber) pstate->p_next_resno++,
 						   colname,
@@ -122,7 +122,7 @@ transformTargetEntry(ParseState *pstate,
 List *
 transformTargetList(ParseState *pstate, List *targetlist,
 					ParseExprKind exprKind)
-{
+{// 处理目标表属性的函数,也就是 select, update等关键字后面的col
 	List	   *p_target = NIL;
 	bool		expand_star;
 	ListCell   *o_target;
@@ -179,7 +179,7 @@ transformTargetList(ParseState *pstate, List *targetlist,
 		 * Not "something.*", or we want to treat that as a plain whole-row
 		 * variable, so transform as a single expression
 		 */
-		p_target = lappend(p_target,
+		p_target = lappend(p_target, // 处理分析树目标属性中的每一项.
 						   transformTargetEntry(pstate,
 												res->val,
 												NULL,

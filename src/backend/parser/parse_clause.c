@@ -1309,7 +1309,7 @@ transformFromClauseItem(ParseState *pstate, Node *n,
 
 				Assert(u_colname[0] != '\0');
 
-				/* Check for USING(foo,foo) */
+				/* Check for USING(foo,foo) */ //using后的列名不能相同
 				foreach(col, res_colnames)
 				{
 					char	   *res_colname = strVal(lfirst(col));
@@ -1321,7 +1321,7 @@ transformFromClauseItem(ParseState *pstate, Node *n,
 										u_colname)));
 				}
 
-				/* Find it in left input */
+				/* Find it in left input */ //保证列名在左侧表中唯一
 				ndx = 0;
 				foreach(col, l_colnames)
 				{
@@ -1338,7 +1338,7 @@ transformFromClauseItem(ParseState *pstate, Node *n,
 					}
 					ndx++;
 				}
-				if (l_index < 0)
+				if (l_index < 0) // 保证列名在左侧表中存在
 					ereport(ERROR,
 							(errcode(ERRCODE_UNDEFINED_COLUMN),
 							 errmsg("column \"%s\" specified in USING clause does not exist in left table",
@@ -1347,7 +1347,7 @@ transformFromClauseItem(ParseState *pstate, Node *n,
 
 				/* Find it in right input */
 				ndx = 0;
-				foreach(col, r_colnames)
+				foreach(col, r_colnames) //保证列名在右侧表中唯一
 				{
 					char	   *r_colname = strVal(lfirst(col));
 
@@ -1362,7 +1362,7 @@ transformFromClauseItem(ParseState *pstate, Node *n,
 					}
 					ndx++;
 				}
-				if (r_index < 0)
+				if (r_index < 0) // 保证列名在左侧表中存在
 					ereport(ERROR,
 							(errcode(ERRCODE_UNDEFINED_COLUMN),
 							 errmsg("column \"%s\" specified in USING clause does not exist in right table",
@@ -1409,21 +1409,21 @@ transformFromClauseItem(ParseState *pstate, Node *n,
 					res_nscolumn->p_varattnosyn = res_colindex;
 				}
 			}
-
-			j->quals = transformJoinUsingClause(pstate,
+//前面的代码用于生成参加using的属性列表
+			j->quals = transformJoinUsingClause(pstate,// 使用 = 连接上面代码中生成的属性列表
 												l_nsitem->p_rte,
 												r_nsitem->p_rte,
 												l_usingvars,
 												r_usingvars);
 		}
-		else if (j->quals)
+		else if (j->quals) // 如果on字段不为空,就处理on给出的连接条件
 		{
 			/* User-written ON-condition; transform it */
-			j->quals = transformJoinOnClause(pstate, j, my_namespace);
+			j->quals = transformJoinOnClause(pstate, j, my_namespace); // 实际上该函数将会调用transformWhereClause来完成它的工作.
 		}
 		else
 		{
-			/* CROSS JOIN: no quals */
+			/* CROSS JOIN: no quals */ //笛卡尔积,不需要条件
 		}
 
 		/* Add remaining columns from each side to the output columns */
@@ -1456,7 +1456,7 @@ transformFromClauseItem(ParseState *pstate, Node *n,
 		 * res_nscolumns isn't totally done yet, but that's OK because
 		 * addRangeTableEntryForJoin doesn't examine it, only store a pointer.
 		 */
-		nsitem = addRangeTableEntryForJoin(pstate,
+		nsitem = addRangeTableEntryForJoin(pstate, //从完成的JoinExpr生成一个表达该连接的RTE加入p_rtable中,并返回JoinExpr
 										   res_colnames,
 										   res_nscolumns,
 										   j->jointype,
@@ -1466,7 +1466,7 @@ transformFromClauseItem(ParseState *pstate, Node *n,
 										   r_colnos,
 										   j->alias,
 										   true);
-
+ 
 		j->rtindex = nsitem->p_rtindex;
 
 		/*
