@@ -61,8 +61,8 @@ GetForeignDataWrapperExtended(Oid fdwid, bits16 flags) //寻找包裹器，通�
 		return NULL;
 	}
 
-	fdwform = (Form_pg_foreign_data_wrapper) GETSTRUCT(tp);
-
+	fdwform = (Form_pg_foreign_data_wrapper) GETSTRUCT(tp); // 得到fdw的对象,需要转换成该类型得指针
+        // 根据是不是cpp来添加字段?
 	fdw = (ForeignDataWrapper *) palloc(sizeof(ForeignDataWrapper));
 	fdw->fdwid = fdwid;
 	fdw->owner = fdwform->fdwowner;

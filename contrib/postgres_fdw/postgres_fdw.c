@@ -1043,7 +1043,7 @@ postgresGetForeignPaths(PlannerInfo *root,
 	 * and also ensures that we account for unsafe join clauses that we'll
 	 * still have to enforce locally (since the parameterized-path machinery
 	 * insists that we handle all movable clauses).
-	 */
+	 */ 
 	ppi_list = NIL;
 	foreach(lc, baserel->joininfo)
 	{

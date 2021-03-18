@@ -142,7 +142,7 @@ transformTargetList(ParseState *pstate, List *targetlist,
 		 * "something", the star could appear as the last field in ColumnRef,
 		 * or as the last indirection item in A_Indirection.
 		 */
-		if (expand_star)
+		if (expand_star) // expand * 
 		{
 			if (IsA(res->val, ColumnRef))
 			{
@@ -152,7 +152,7 @@ transformTargetList(ParseState *pstate, List *targetlist,
 				{
 					/* It is something.*, expand into multiple items */
 					p_target = list_concat(p_target,
-										   ExpandColumnRefStar(pstate,
+										   ExpandColumnRefStar(pstate, // 这个方法就可以.
 															   cref,
 															   true));
 					continue;
