@@ -1408,7 +1408,7 @@ postgresGetForeignPlan(PlannerInfo *root,
 							local_exprs, // 查询语句
 							scan_relid, // 如果scanrelid如果是单表，即baserel->relid.如果baserel是Join relation 或者 upper relation 设置scanrelid为0
 							params_list, // 1额外的表达式，没有可以传NIL
-							fdw_private,  // fdw_private是FDW的私有信息；可提供过执行器调用的回调函数中使用
+							fdw_private,  // fdw_private是FDW的私有信息；可在执行器执行过程中,提供回调函数使用.
 							fdw_scan_tlist, // 2未知可传NIL
 							fdw_recheck_quals, // 3未知可传NIL
 							outer_plan); // 4未知可传NIL 其中1234主要用于Join Relatio或 Upper relation
