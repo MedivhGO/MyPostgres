@@ -267,9 +267,9 @@ planner(Query *parse, const char *query_string, int cursorOptions,
 {
 	PlannedStmt *result;
 
-	if (planner_hook)
+	if (planner_hook) // 用户自己提供的优化器功能
 		result = (*planner_hook) (parse, query_string, cursorOptions, boundParams);
-	else
+	else // postgresql提供的标准优化器功能
 		result = standard_planner(parse, query_string, cursorOptions, boundParams);
 	return result;
 }
